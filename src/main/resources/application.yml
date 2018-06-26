@@ -18,7 +18,7 @@ spring:
                     searchLocations: file:./config/
         
 server:
-    port: 5001
+    port: 8443
     ssl.key-store: classpath:keystore.p12
     ssl.key-store-password: changeit
     ssl.keyStoreType: PKCS12
@@ -52,7 +52,7 @@ eureka:
 #
 # im integrierten Modus (Wildfly) ist es diese URL
 #
-            defaultZone: https://user:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka-ds/eureka
+            defaultZone: https://${eureka.instance.hostname}:${server.port}/eureka-ds/eureka
     server:
         enableSelfPreservation: false
         response-cache-update-interval-ms: 1000
