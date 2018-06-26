@@ -1,0 +1,60 @@
+spring:
+    application:
+        name: eureka-discovery-service
+        description: Eureka Discovery and Cloud Configuration Service
+    jmx:
+        default-domain: eureka-discovery-service
+    profiles:
+        active: native
+    cloud:
+        config:
+            server:
+                bootstrap: true
+                prefix: /config
+#                git:
+#                    uri: https://github.com/spring-cloud-samples/config-repo
+#                    basedir: target/config
+                native:
+                    searchLocations: file:./config/
+        
+server:
+    port: 5001
+    ssl.key-store: classpath:keystore.p12
+    ssl.key-store-password: changeit
+    ssl.keyStoreType: PKCS12
+    ssl.keyAlias: eureka-ds
+
+http:
+    client:
+      ssl:
+          trust-store: classpath:keystore.p12
+          trust-store-password: changeit
+
+logging:
+    level:
+        org.springframework.cloud: 'DEBUG'
+
+
+eureka:
+    instance:
+        hostname: localhost
+        securePortEnabled: true
+        nonSecurePortEnabled: false
+        nonSecurePort: 80
+        metadataMap:
+            configPath: /eureka-ds/config
+    client:
+        fetchRegistry: false
+        serviceUrl:
+#
+# im Standalone-Betrieb ist es diese URL
+#            defaultZone: https://user:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka
+#
+# im integrierten Modus (Wildfly) ist es diese URL
+#
+            defaultZone: https://user:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka-ds/eureka
+    server:
+        enableSelfPreservation: false
+        response-cache-update-interval-ms: 1000
+    dashboard:
+        path: /dashboard

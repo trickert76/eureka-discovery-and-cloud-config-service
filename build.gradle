@@ -1,0 +1,96 @@
+buildscript {
+  ext {
+    springBootVersion = '2.0.2.RELEASE'
+  }
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+def machtasks = 'my tasks'
+group = 'my.tasks'
+version = '0.0.1'
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+  // Maven Spring Repository for Milestone Releases (optional for development but don't use it in Production)
+  maven { url 'https://repo.spring.io/libs-milestone-local' }
+  // Maven Spring Repository for Stable Releases
+  maven { url 'https://repo.spring.io/libs-release-local' }
+}
+
+dependencyManagement {
+  imports {
+    // define the dependency version (current stable is E..., but Spring Boot 2 needs version F...) 
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Finchley.RC2'
+  }
+}
+
+dependencies {
+  // web
+  compile("org.springframework.boot:spring-boot-starter")
+  compile('org.springframework.boot:spring-boot-starter-json')
+  compile("org.springframework.boot:spring-boot-starter-web")
+  compile('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client')
+  providedCompile('org.springframework.boot:spring-boot-starter-tomcat')
+  //providedCompile('org.springframework.boot:spring-boot-starter-undertow')
+
+  // security
+  // compile('org.springframework.boot:spring-boot-starter-security')
+  //compile('org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure')
+  
+  // eureka discovery service
+  compile('org.springframework.cloud:spring-cloud-starter-netflix-eureka-server')
+
+  // configuration
+  compile ('org.springframework.cloud:spring-cloud-config-server')
+//  compile ('org.springframework.cloud:spring-cloud-config-monitor')
+//  compile ('org.springframework.cloud:spring-cloud-starter-stream-rabbit')
+}
+
+
+/**
+ * Task to generate a self signed certificate which is used from REST Controller for answering HTTP SSL Requests.
+ * WARNING: don't use self signed certificates in production environment. Use a MACH CA and include only the root certificate.
+ */
+task createKeystore {
+  group = machtasks
+  
+  def mykeystore = "src/main/resources/keystore.p12"
+  def mystorepass = 'changeit'
+  def mystoretype = 'PKCS12'
+  def mykeypass = 'changeit'
+  def mykeyalg = 'RSA'
+  def myvalidity = '3650'
+  def mykeysize = '4066'
+    
+  doFirst {
+    if (!file(mykeystore).exists()) {
+      ant.genkey(
+        keystore:mykeystore, storepass:mystorepass, storetype: mystoretype, keypass: mykeypass, keyalg: mykeyalg, validity: myvalidity, keysize: mykeysize,
+        alias:"eureka-web",
+        dname:"CN=localhost,OU=Wildfly Infrastructure,O=Company,L=City,S=State,C=DE"
+      )
+      ant.genkey(
+        keystore:mykeystore, storepass:mystorepass, storetype: mystoretype, keypass: mykeypass, keyalg: mykeyalg, validity: myvalidity, keysize: mykeysize,
+        alias:"eureka-ds",
+        dname:"CN=localhost,OU=Discovery Service,O=Company,L=City,S=State,C=DE"
+      )
+      ant.genkey(
+        keystore:mykeystore, storepass:mystorepass, storetype: mystoretype, keypass: mykeypass, keyalg: mykeyalg, validity: myvalidity, keysize: mykeysize,
+        alias:"eureka-client",
+        dname:"CN=localhost,OU=Example,O=Company,L=City,S=State,C=DE"
+      )
+    }
+  }
+}
